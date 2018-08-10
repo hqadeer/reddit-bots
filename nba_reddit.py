@@ -80,10 +80,10 @@ class RedditBot:
                                     my_submission.delete()
 
     def check_for_relevance(self):
-        # Delete post(s) if Tweet(s) not relevant to NBA.
-
-    def check_for_reporters(self):
-
+        # Delete post(s) if not received well. Serves as relevance test.
+        for my_submission in self.user.submissions.new(limit = 10):
+            if int(my_submission.score) < 0 and my_submission.title[0] == '[':
+                my_submission.delete()
 
 
 
@@ -104,7 +104,7 @@ if __name__ == '__main__':
                 bot.submit(contents[i], contents[i+1])
             check_time = time.time()
         if check_time != None and time.time() - check_time > 120:
-            # Only check for duplicates and relevance if no tweets have been posted in 2 mins so as to minimize hangups.
+            # Only check for duplicates and relevance if no tweets have been posted in 5 mins so as to minimize hangups.
             bot.check_for_duplicates()
             bot.check_for_relevance()
         delay = time.time() - init_time # Stop stopwatch
