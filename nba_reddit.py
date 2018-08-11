@@ -147,7 +147,7 @@ if __name__ == '__main__':
                 bot.submit(contents[i], contents[i+1])
             check_time = time.time()
             new_posts += len(contents) / 2
-        if check_time != None and time.time() - check_time > 300:
+        if new_posts != 0 and time.time() - check_time > 300:
             # Only check for duplicates and relevance if no tweets have been posted in 5 mins so as to minimize hangups.
             bot.check_for_duplicates(new_posts)
             bot.check_for_feedback(new_posts)
