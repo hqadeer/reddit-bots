@@ -71,7 +71,7 @@ class RedditBot:
             return
         for my_submission in self.user.submissions.new(limit=number_of_posts):
             for submission in self.nba.new(limit=15):
-                if int(submission.created_utc) < int(my_submission.created_utc) and submission.url == my_submission.url:
+                if int(submission.created_utc) < int(my_submission.created_utc) and submission.url == my_submission.url and submission.score > my_submission.score:
                     id = submission.url.split('/')[5]
                     with open(REPORTERS) as f:
                         for line in f:
