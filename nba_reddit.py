@@ -21,7 +21,11 @@ class TweetScraper():
                 name = line.split(',')[0]
                 id = int(line.split(',')[1])
                 screen_name = line.split(',')[2].split('\n')[0]
-                statuses = self.api.GetUserTimeline(id, count=5)
+                try:
+                    statuses = self.api.GetUserTimeline(id, count=5)
+                except Exception:
+                    print("Could not obtain timeline for", name, "\nCheck", REPORTERS)
+                    return
                 for tweet in statuses:
                     age = time.time() - tweet.created_at_in_seconds
                     if not tweet.retweeted_status and tweet.in_reply_to_user_id == None and tweet.quoted_status == None and age < (8 + carry_over):
