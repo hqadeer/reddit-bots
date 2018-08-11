@@ -14,7 +14,7 @@ class TweetScraper():
         self.api.tweet_mode='extended'
 
     def scrape(self, carry_over):
-        #nScrape Tweets from all users in the reporters.txt file tweeted in the last 6 seconds.
+        #nScrape Tweets from all users in the reporters.txt file tweeted in the last 8 seconds.
         to_post = []
         with open(REPORTERS) as f:
             for line in f:
@@ -24,7 +24,7 @@ class TweetScraper():
                 statuses = self.api.GetUserTimeline(id, count=5)
                 for tweet in statuses:
                     age = time.time() - tweet.created_at_in_seconds
-                    if not tweet.retweeted_status and tweet.in_reply_to_user_id == None and tweet.quoted_status == None and age < (6 + carry_over):
+                    if not tweet.retweeted_status and tweet.in_reply_to_user_id == None and tweet.quoted_status == None and age < (8 + carry_over):
                         text = tweet.full_text
                         rpost = text.split(' http')
                         to_post.append(''.join(['[', name, '] ', rpost[0]]))
@@ -138,7 +138,7 @@ if __name__ == '__main__':
             new_posts = 0
         delay = time.time() - init_time # Stop stopwatch
         try:
-            time.sleep(5 - delay) # Account for delays by shortening sleep period.
+            time.sleep(7 - delay) # Account for delays by shortening sleep period.
             left_over = 0
         except ValueError:
-            left_over = delay - 5
+            left_over = delay - 7
