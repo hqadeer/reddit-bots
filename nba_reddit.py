@@ -51,8 +51,10 @@ class RedditBot:
     def submit(self, title, web_url):
         #Submit post to reddit and print to standard output
         self.nba.submit(title, url=web_url)
-        print(title)
-        print(web_url)
+        message = ''.join(['Posted to r/nba:\nTitle: ', title, '\nURL: ', web_url, '\n'])
+        with open('logs.txt', 'a') as f:
+            f.write(message)
+        print(message)
 
     def __get_comments(self):
         #Deprecated method to play around with API
@@ -74,7 +76,7 @@ class RedditBot:
         if number_of_posts == 0:
             return
         for my_submission in self.user.submissions.new(limit=number_of_posts):
-            for submission in self.nba.new(limit=15):
+            for submission in self.nba.new(limit=10):
                 if int(submission.created_utc) < int(my_submission.created_utc) and submission.url == my_submission.url and submission.score > my_submission.score:
                     id = submission.url.split('/')[5]
                     with open(REPORTERS) as f:
@@ -84,18 +86,22 @@ class RedditBot:
                                 fragment = ''.join(['[', parts[0], ']'])
                                 if fragment in submission.title:
                                     my_submission.delete()
+                                    message = (''.join(['Deleted the following post because ', submission.author, ' posted first:\n', my_submission.title, '\nTheir post: ', submission.title, '\n']))
                                     with open('logs.txt', 'a') as f:
-                                        f.write(''.join(['Deleted the following post because ', submission.author, ' posted first:\n', my_submission.title, '\nTheir post: ', submission.title, '\n']))
+                                        f.write(message)
+                                    print(message)
 
     def check_for_feedback(self, number_of_posts):
         # Delete post(s) if not received well. Serves as relevance test.
         if number_of_posts == 0:
             return
         for my_submission in self.user.submissions.new(limit=number_of_posts):
-            if int(my_submission.score) < 0 and my_submission.title[0] == '[':
+            if int(my_submission.score) <= 0 and my_submission.title[0] == '[':
                 my_submission.delete()
+                message = (''.join(['Deleted the following post because it had a sub-zero score:\n', my_submission.title, '\n']))
                 with open('logs.txt', 'a') as f:
-                    f.write(''.join(['Deleted the following post because it had a sub-zero score:\n', my_submission.title, '\n']))
+                    f.write(message)
+                print(message)
 
 if __name__ == '__main__':
     if len(sys.argv) != 4: # Specify usage
@@ -103,11 +109,17 @@ if __name__ == '__main__':
         sys.exit(1)
     try:
         bot = RedditBot(sys.argv[1])
+    except FileNotFoundError:
+        print("Could not find", sys.argv[1])
+        sys.exit(2)
     except Exception:
         print("Reddit authentication failed. Check", sys.argv[1])
         sys.exit(2)
     try:
         twitter_bot = TweetScraper(sys.argv[2])
+    except FileNotFoundError:
+        print("Could not find", sys.argv[2])
+        sys.exit(3)
     except Exception:
         print("Twitter authentication failed. Check", sys.argv[2])
         sys.exit(3)
