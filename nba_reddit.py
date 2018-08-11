@@ -100,20 +100,20 @@ if __name__ == '__main__':
     try:
         bot = RedditBot(sys.argv[1])
     except Exception:
-        print("Reddit authentication failed. Check ", sys.argv[1])
+        print("Reddit authentication failed. Check", sys.argv[1])
         sys.exit(2)
     try:
         twitter_bot = TweetScraper(sys.argv[2])
     except Exception:
-        print("Twitter authentication failed. Check ", sys.argv[2])
+        print("Twitter authentication failed. Check", sys.argv[2])
         sys.exit(3)
     try:
         with open(sys.argv[3]) as f:
             if sum(1 for line in f) == 0:
-                print(sys.argv[3], " is empty.")
+                print(sys.argv[3], "is empty.")
                 sys.exit(4)
     except IOError:
-        print ("Could not read ", sys.argv[3])
+        print ("Could not read", sys.argv[3])
         sys.exit(5)
     REPORTERS = sys.argv[3]
     with open('logs.txt', 'w') as f:
@@ -138,7 +138,7 @@ if __name__ == '__main__':
             new_posts = 0
         delay = time.time() - init_time # Stop stopwatch
         try:
-            time.sleep(5 - delay - left_over) # Account for delays by shortening sleep period.
+            time.sleep(5 - delay) # Account for delays by shortening sleep period.
             left_over = 0
         except ValueError:
             left_over = delay - 5
