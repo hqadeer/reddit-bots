@@ -37,7 +37,7 @@ class TweetScraper():
                     if (not tweet.retweeted_status and
                             tweet.in_reply_to_user_id == None and
                             tweet.quoted_status == None and
-                            age < (8 + carry_over)):
+                            age < (7.5 + carry_over)):
                         text = tweet.full_text
                         rpost = text.split(' http')
                         to_post.append(''.join(['[', name, '] ', rpost[0]]))
