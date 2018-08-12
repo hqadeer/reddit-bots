@@ -3,7 +3,7 @@ import twitter
 import sys
 import time
 
-class TweetScraper():
+class TweetScraper:
 
 
     def __init__(self, twitter_file):
