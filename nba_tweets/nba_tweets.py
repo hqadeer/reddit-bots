@@ -42,7 +42,7 @@ class TweetScraper:
                         rpost = text.split(' http')
                         to_post.append(''.join(['[', name, '] ', rpost[0]]))
                         to_post.append(''.join(['www.twitter.com/', screen_name,
-                            'status/', str(tweet.id)]))
+                            '/status/', str(tweet.id)]))
         if len(to_post) > 0:
             return to_post
 
