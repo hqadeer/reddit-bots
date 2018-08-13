@@ -162,7 +162,7 @@ if __name__ == '__main__':
     # Declaring loop variables and setting up logs text file.
     REPORTERS = sys.argv[3]
     with open('logs.txt', 'w') as f:
-        f.write('Logs:\n')
+        f.write('Logs:\n\n')
     delay = 0
     left_over = 0
     new_posts = 0
