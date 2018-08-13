@@ -27,7 +27,7 @@ class TweetScraper:
                 id = int(line.split(',')[1])
                 screen_name = line.split(',')[2].split('\n')[0]
                 try:
-                    statuses = self.api.GetUserTimeline(id, count=5)
+                    statuses = self.api.GetUserTimeline(id, count=1)
                 except Exception:
                     print("Could not obtain timeline for", name, "\nCheck",
                         REPORTERS)
@@ -37,7 +37,7 @@ class TweetScraper:
                     if (not tweet.retweeted_status and
                             tweet.in_reply_to_user_id == None and
                             tweet.quoted_status == None and
-                            age < (4 + carry_over)):
+                            age < (3 + carry_over)):
                         text = tweet.full_text
                         rpost = text.split(' http')
                         to_post.append(''.join(['[', name, '] ', rpost[0]]))
@@ -185,7 +185,7 @@ if __name__ == '__main__':
             new_posts = 0
         delay = time.time() - init_time # Stop stopwatch
         try:
-            time.sleep(3 - delay)
+            time.sleep(2 - delay)
             left_over = 0
         except ValueError:
-            left_over = delay - 3
+            left_over = delay - 2
