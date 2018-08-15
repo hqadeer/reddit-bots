@@ -2,6 +2,7 @@ import praw
 import twitter
 import sys
 import time
+import traceback
 
 class TweetScraper:
 
@@ -35,7 +36,7 @@ class TweetScraper:
                     with open('logs.txt', 'a') as f:
                         f.write(message)
                     print(message)
-                    print_exc()
+                    traceback.print_exc()
                     return
                 for tweet in statuses:
                     age = time.time() - tweet.created_at_in_seconds
@@ -147,7 +148,7 @@ if __name__ == '__main__':
     except Exception as exc:
         print("Reddit authentication failed. Check", sys.argv[1])
         print("Type of exception:", exc.__class__.__name__)
-        print_exc()
+        traceback.print_exc()
         sys.exit(2)
     try:
         twitter_bot = TweetScraper(sys.argv[2])
@@ -157,7 +158,7 @@ if __name__ == '__main__':
     except Exception as exc:
         print("Twitter authentication failed. Check", sys.argv[2])
         print("Type of exception:", exc.__class__.__name__)
-        print_exc()
+        traceback.print_exc()
         sys.exit(3)
     try:
         with open(sys.argv[3]) as f:
