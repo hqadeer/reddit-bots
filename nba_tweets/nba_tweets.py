@@ -144,16 +144,20 @@ if __name__ == '__main__':
     except FileNotFoundError:
         print("Could not find", sys.argv[1])
         sys.exit(2)
-    except Exception:
+    except Exception as esc:
         print("Reddit authentication failed. Check", sys.argv[1])
+        print("Type of exception:", esc.__class__.__name__)
+        print_esc()
         sys.exit(2)
     try:
         twitter_bot = TweetScraper(sys.argv[2])
     except FileNotFoundError:
         print("Could not find", sys.argv[2])
         sys.exit(3)
-    except Exception:
+    except Exception as esc:
         print("Twitter authentication failed. Check", sys.argv[2])
+        print("Type of exception:", esc.__class__.__name__)
+        print_esc()
         sys.exit(3)
     try:
         with open(sys.argv[3]) as f:
