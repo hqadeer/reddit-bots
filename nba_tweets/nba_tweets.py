@@ -12,7 +12,7 @@ class TweetScraper:
         info = []
         with open(twitter_file) as f:
             for line in f:
-                info.append(line.split("=")[1].split("\n")[0])
+                info.append(line.split('=')[1].split('\n')[0])
         self.api = twitter.Api(consumer_key = info[0], consumer_secret =
             info[1], access_token_key = info[2], access_token_secret = info[3])
         self.api.tweet_mode='extended'
@@ -28,9 +28,14 @@ class TweetScraper:
                 screen_name = line.split(',')[2].split('\n')[0]
                 try:
                     statuses = self.api.GetUserTimeline(id, count=1)
-                except Exception:
-                    print("Could not obtain timeline for", name, "\nCheck",
-                        REPORTERS)
+                except Exception as esc:
+                    message = "".join(["An error occurred in obtaining the",
+                        " Twitter timeline for ", name, ":\nType is ",
+                        esc.__class__.__name__, '\n\n'])
+                    with open('logs.txt', 'a') as f:
+                        f.write(message)
+                    print(message)
+                    print_esc()
                     return
                 for tweet in statuses:
                     age = time.time() - tweet.created_at_in_seconds
@@ -39,10 +44,10 @@ class TweetScraper:
                             tweet.quoted_status == None and
                             age < (3 + carry_over)):
                         text = tweet.full_text
-                        rpost = text.split(' http')
-                        to_post.append(''.join(['[', name, '] ', rpost[0]]))
-                        to_post.append(''.join(['www.twitter.com/', screen_name,
-                            '/status/', str(tweet.id)]))
+                        rpost = text.split(" http")
+                        to_post.append("".join(['[', name, '] ', rpost[0]]))
+                        to_post.append("".join(["www.twitter.com/", screen_name,
+                            "/status/", str(tweet.id)]))
         if len(to_post) > 0:
             return to_post
 
@@ -65,7 +70,7 @@ class RedditBot:
 
         # Submit post to Reddit; print to logs file and standard output.
         self.nba.submit(title, url=web_url)
-        message = ''.join(['Posted to r/nba:\nTitle: ', title, '\nURL: ',
+        message = ''.join(["Posted to r/nba:\nTitle: ", title, "\nURL: ",
             web_url, '\n\n'])
         with open('logs.txt', 'a') as f:
             f.write(message)
@@ -105,10 +110,10 @@ class RedditBot:
                                 fragment = ''.join(['[', parts[0], ']'])
                                 if fragment in submission.title:
                                     my_submission.delete()
-                                    message = (''.join(['Deleted the following',
-                                    ' post because ', submission.author,
-                                    ' posted first:\n', my_submission.title,
-                                    '\nTheir post: ', submission.title, '\n\n']))
+                                    message = (''.join(["Deleted the following",
+                                    " post because ", submission.author,
+                                    " posted first:\n", my_submission.title,
+                                    "\nTheir post: ", submission.title, '\n\n']))
                                     with open('logs.txt', 'a') as f:
                                         f.write(message)
                                     print(message)
@@ -121,8 +126,8 @@ class RedditBot:
         for my_submission in self.user.submissions.new(limit=number_of_posts):
             if int(my_submission.score) <= 0 and my_submission.title[0] == '[':
                 my_submission.delete()
-                message = (''.join(['Deleted the following post because it had',
-                ' a sub-zero score:\n', my_submission.title, '\n\n']))
+                message = (''.join(["Deleted the following post because it had",
+                " a sub-zero score:\n", my_submission.title, '\n\n']))
                 with open('logs.txt', 'a') as f:
                     f.write(message)
                 print(message)
@@ -162,12 +167,12 @@ if __name__ == '__main__':
     # Declaring loop variables and setting up logs text file.
     REPORTERS = sys.argv[3]
     with open('logs.txt', 'w') as f:
-        f.write('Logs:\n\n')
+        f.write("Logs:\n\n")
     delay = 0
     left_over = 0
     new_posts = 0
     check_time = None
-    print('Running')
+    print("Running")
 
     # Main loop
     while True:
