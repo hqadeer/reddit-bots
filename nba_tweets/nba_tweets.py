@@ -29,7 +29,7 @@ class TweetScraper:
                 screen_name = line.split(',')[2].split('\n')[0]
                 try:
                     statuses = self.api.GetUserTimeline(id, count=1)
-                except ConnectionError:
+                except (ConnectionError, TwitterError) as exc:
                     message = "A connection error occurred."
                     with open('logs.txt', 'a') as f:
                         f.write(message)
