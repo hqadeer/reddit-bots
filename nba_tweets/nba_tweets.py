@@ -49,7 +49,7 @@ class TweetScraper:
                     if (not tweet.retweeted_status and
                             tweet.in_reply_to_user_id == None and
                             tweet.quoted_status == None and
-                            age < (2.75 + carry_over)):
+                            age < (3.75 + carry_over)):
                         text = tweet.full_text
                         rpost = text.split(" http")
                         to_post.append("".join(['[', name, '] ', rpost[0]]))
@@ -201,7 +201,7 @@ if __name__ == '__main__':
             new_posts = 0
         delay = time.time() - init_time # Stop stopwatch
         try:
-            time.sleep(2 - delay)
+            time.sleep(3 - delay)
             left_over = 0
         except ValueError:
             left_over = delay - 2
