@@ -26,7 +26,7 @@ class StatBot:
         self.sub = self.reddit.subreddit('nba')
         self.league = NBA()
         self.names = [name[0] for name in self.league.get_all_player_names()]
-
+        self.stats = self.league.get_valid_stats()
 
 
     def load_relevant_players(self, limit=5):
@@ -68,8 +68,9 @@ class StatBot:
 
         # Find a word within the comment containing a stat.
         # Split that word along its forward slashes.
-        return [word for word in words if any([stat in word for stat in
-                stats])][0].split('/')
+        stat_word = [word for word in words if any([stat in word for stat in
+                     self.stats])][0].split('/')
+        return [stat for stat in stat_word if stat.upper() in self.stats]
 
     def parse_seasons(self, words):
         ''' Parse a comment's body for the season range requested and return it
@@ -89,6 +90,16 @@ class StatBot:
 
         return [word for word in words if check(word)][0]
 
+    def output(self, text, comment):
+        ''' Format results and post them as a reply to comment
+        Return ID and URL of response.
+
+        results (list of tuples) -- output returned from get_stats query
+        comment -- praw.Comment object
+        '''
+
+    def log(self, comment):
+
     def process(self, comment):
         '''Takes a comment and posts a reply providing the queried stat(s)
 
@@ -96,15 +107,24 @@ class StatBot:
         '''
         words = comment.body.split(' ')
         name = self.parse_name(words)
+        player = self.league.get_player(name)
         stats = self.parse_stats(words)
+        seasons = self.parse_seasons(words)
+        if '-p' in words or '-playoffs' in words:
+            results = player.get_stats(stats, seasons, mode='playoffs')
+        elif '-b' in words or '-both' in words:
+            results = player.get_stats(stats, seasons, mode='both')
+        else:
+            results = player.get_stats(stats, seasons) # mode='season'
+        descrip = 
+        line = '-|' * (len(stats) + 1)
+        self.log(self.output(text, comment))
 
-
-    def find_comments(self):
-        '''Search for comments in r/nba containing "!STAT"
+    def run(self):
+        '''Search for comments in r/nba containing "!STAT" and respond to them.
 
         This functions as the main loop of the program.
         '''
-
         for comment in self.sub.stream.comments():
             if "!STAT" in comment.body:
                 self.process(comment)
@@ -112,3 +132,4 @@ class StatBot:
 if __name__ == "__main__":
 
     bot = StatBot('reddit.txt')
+    bot.run()
