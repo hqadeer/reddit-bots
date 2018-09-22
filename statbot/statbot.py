@@ -111,12 +111,14 @@ class StatBot:
         stats = self.parse_stats(words)
         seasons = self.parse_seasons(words)
         if '-p' in words or '-playoffs' in words:
-            results = player.get_stats(stats, seasons, mode='playoffs')
+            results = [player.get_stats(stats, seasons, mode='playoffs')]
         elif '-b' in words or '-both' in words:
-            results = player.get_stats(stats, seasons, mode='both')
+            results = [player.get_stats(stats, seasons, mode='playoffs'),
+                       player.get_stats(stats, seasons)]
         else:
-            results = player.get_stats(stats, seasons) # mode='season'
-        descrip = 
+            results = [player.get_stats(stats, seasons)] # mode='season'
+        descrip = "Stats for %s:" % name.title()
+        header = '|'.join(['Season'] + [stat.upper() for stat in stats])
         line = '-|' * (len(stats) + 1)
         self.log(self.output(text, comment))
 
