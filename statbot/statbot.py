@@ -77,7 +77,17 @@ class StatBot:
         words (list) -- list of words from body of praw.Comment object
         '''
 
-        return [word for word in words if '-' in word and len(word) == 7][0]
+        def check(word):
+        ''' Checks if a word specifies a year range'''
+            if '-' not in word or len(word) != 7:
+                return False
+            try:
+                return (int(word[5:]) > int(word[2:4]) and (int(word[:2]) == 19
+                        or int(word[:2]) == 20))
+            except ValueError:
+                return False
+
+        return [word for word in words if check(word)][0]
 
     def process(self, comment):
         '''Takes a comment and posts a reply providing the queried stat(s)
