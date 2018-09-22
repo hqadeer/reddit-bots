@@ -27,6 +27,8 @@ class StatBot:
         self.league = NBA()
         self.names = [name[0] for name in self.league.get_all_player_names()]
 
+
+
     def load_relevant_players(self, limit=5):
         '''Loads players mentioned in recent r/nba comments to database.
 
@@ -46,29 +48,45 @@ class StatBot:
         return relevant
         self.league.load_players(relevant)
 
-    def get_name(self, comment):
-        '''Scrape a comment's body for a player name
+    def parse_name(self, words):
+        '''Parse a comment's body for a player name and returns it
 
-        comment (string) -- body of praw.Comment object
+        words (list) -- list of words from body of praw.Comment object
         '''
-        
-        words = comment.body.split(' ')
 
         for i, word in enumerate(words[:-1]):
             fullname = ' '.join(word, words[i+1])
             if fullname in self.names:
                 return fullname
 
+    def parse_stats(self, words):
+        '''Parse a comment's body for stat queries and returns a list of
+           stats requested.
+
+        words (list) -- list of words from body of praw.Comment object
+        '''
+
+        # Find a word within the comment containing a stat.
+        # Split that word along its forward slashes.
+        return [word for word in words if any([stat in word for stat in
+                stats])][0].split('/')
+
+    def parse_seasons(self, words):
+        ''' Parse a comment's body for the season range requested and return it
+
+        words (list) -- list of words from body of praw.Comment object
+        '''
+
+        return [word for word in words if '-' in word and len(word) == 7][0]
+
     def process(self, comment):
         '''Takes a comment and posts a reply providing the queried stat(s)
 
         comment (praw.Comment object) -- comment containing trigger
         '''
-        name = self.get_name(comment.body)
-
-
-
-
+        words = comment.body.split(' ')
+        name = self.parse_name(words)
+        stats = self.parse_stats(words)
 
 
     def find_comments(self):
