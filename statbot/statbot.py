@@ -45,7 +45,6 @@ class StatBot:
                     relevant.add(name)
             except IndexError:
                 continue
-        return relevant
         self.league.load_players(relevant)
 
     def parse_name(self, words):
@@ -79,7 +78,7 @@ class StatBot:
         '''
 
         def check(word):
-        ''' Checks if a word specifies a year range'''
+            ''' Checks if a word specifies a year range'''
             if '-' not in word or len(word) != 7:
                 return False
             try:
@@ -99,6 +98,7 @@ class StatBot:
         '''
 
     def log(self, comment):
+        pass
 
     def process(self, comment):
         '''Takes a comment and posts a reply providing the queried stat(s)
@@ -109,17 +109,19 @@ class StatBot:
         name = self.parse_name(words)
         player = self.league.get_player(name)
         stats = self.parse_stats(words)
-        seasons = self.parse_seasons(words)
+        year_range = self.parse_seasons(words)
         if '-p' in words or '-playoffs' in words:
-            results = [player.get_stats(stats, seasons, mode='playoffs')]
+            results = [player.get_stats(stats, year_range, mode='playoffs')]
         elif '-b' in words or '-both' in words:
-            results = [player.get_stats(stats, seasons, mode='playoffs'),
-                       player.get_stats(stats, seasons)]
+            results = [player.get_stats(stats, year_range, mode='playoffs'),
+                       player.get_stats(stats, year_range)]
         else:
-            results = [player.get_stats(stats, seasons)] # mode='season'
-        descrip = "Stats for %s:" % name.title()
+            results = [player.get_stats(stats, year_range)] # mode='season'
+        seasons = player.get_year_range(year_range)
+        descrip = "%s's stats for %s:" % (name.title(), year_range)
         header = '|'.join(['Season'] + [stat.upper() for stat in stats])
         line = '-|' * (len(stats) + 1)
+        table_data = [(pair[0],) + pair[1] for pair in zip(seasons, results)]
         self.log(self.output(text, comment))
 
     def run(self):
@@ -134,4 +136,3 @@ class StatBot:
 if __name__ == "__main__":
 
     bot = StatBot('reddit.txt')
-    bot.run()
