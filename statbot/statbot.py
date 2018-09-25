@@ -110,24 +110,36 @@ class StatBot:
         name = self.parse_name(words)
         player = self.league.get_player(name)
         stats = self.parse_stats(words)
-        _stats = copy.deepcopy(stats)
         year_range = self.parse_seasons(words)
         if '-p' in words or '-playoffs' in words:
-            results = player.get_stats(stats, year_range, mode='playoffs')
+            p_results = player.get_stats(stats, year_range, mode='playoffs')
+            r_results = []
         elif '-b' in words or '-both' in words:
-            results = (player.get_stats(stats, year_range, mode='playoffs') +
-                       player.get_stats(stats, year_range))
+            p_results = player.get_stats(stats, year_range, mode='playoffs')
+            r_results = player.get_stats(stats, year_range)
         else:
-            results = player.get_stats(stats, year_range) # mode='season'
+            r_results = player.get_stats(stats, year_range) # mode='season'
+            p_results = []
         seasons = player.get_year_range(year_range)
         descrip = "%s's stats for %s:\n" % (name.title(), year_range)
-        header = '|'.join(['Season'] + [stat.upper() for stat in _stats])
-        line = '-|' * (len(_stats) + 1)
-        table_data = [(pair[0],) + pair[1] for pair in zip(seasons, results)]
-        string_data = ['|'.join([str(element) for element in tup]) for tup in
-                       table_data]
-        text = '\n'.join([descrip, header, line] + string_data)
-        self.log(self.output(text, comment))
+        header = '|'.join(['Season'] + [stat.upper() for stat in stats])
+        line = '-|' * (len(stats) + 1)
+        if r_results:
+            r_data = [(pair[0],) + pair[1] for pair in zip(seasons, r_results)]
+            string_r = (['Regular Season:\n', header, line] +
+                       ['|'.join([str(element) for element in tup]) for tup
+                        in r_data])
+        else:
+            string_r = []
+        if p_results:
+            p_data = [(pair[0],) + pair[1] for pair in zip(seasons, p_results)]
+            string_p = ['Playoffs:\n', header, line] + ['|'.join([str(element)
+                        for element in tup]) for tup in p_data]
+        else:
+            string_p = []
+        text = '\n'.join([descrip] + string_p[0:3] + string_p[3:] +
+                         string_r[0:3] + string_r[3:])
+        return self.log(comment, text)
 
     def run(self):
         '''Search for comments in r/nba containing "!STAT" and respond to them.
@@ -136,7 +148,7 @@ class StatBot:
         '''
         for comment in self.sub.stream.comments():
             if "!STAT" in comment.body:
-                self.process(comment)
+                comment.reply(self.process(comment))
 
 class _Comment():
     '''Temporary class for testing purposes'''
