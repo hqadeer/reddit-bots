@@ -1,6 +1,7 @@
 import sys
 import praw
 import sqlite3
+import copy
 from nba_scrape import NBA
 
 class StatBot:
@@ -54,9 +55,9 @@ class StatBot:
         '''
 
         for i, word in enumerate(words[:-1]):
-            fullname = ' '.join(word, words[i+1])
-            if fullname in self.names:
-                return fullname
+            fullname = word + ' ' + words[i+1]
+            if fullname.lower() in self.names:
+                return fullname.lower()
 
     def parse_stats(self, words):
         '''Parse a comment's body for stat queries and returns a list of
@@ -67,8 +68,8 @@ class StatBot:
 
         # Find a word within the comment containing a stat.
         # Split that word along its forward slashes.
-        stat_word = [word for word in words if any([stat in word for stat in
-                     self.stats])][0].split('/')
+        stat_word = [word for word in words if any([stat in word.upper() for
+                     stat in self.stats])][0].split('/')
         return [stat for stat in stat_word if stat.upper() in self.stats]
 
     def parse_seasons(self, words):
@@ -109,19 +110,23 @@ class StatBot:
         name = self.parse_name(words)
         player = self.league.get_player(name)
         stats = self.parse_stats(words)
+        _stats = copy.deepcopy(stats)
         year_range = self.parse_seasons(words)
         if '-p' in words or '-playoffs' in words:
-            results = [player.get_stats(stats, year_range, mode='playoffs')]
+            results = player.get_stats(stats, year_range, mode='playoffs')
         elif '-b' in words or '-both' in words:
-            results = [player.get_stats(stats, year_range, mode='playoffs'),
-                       player.get_stats(stats, year_range)]
+            results = (player.get_stats(stats, year_range, mode='playoffs') +
+                       player.get_stats(stats, year_range))
         else:
-            results = [player.get_stats(stats, year_range)] # mode='season'
+            results = player.get_stats(stats, year_range) # mode='season'
         seasons = player.get_year_range(year_range)
-        descrip = "%s's stats for %s:" % (name.title(), year_range)
-        header = '|'.join(['Season'] + [stat.upper() for stat in stats])
-        line = '-|' * (len(stats) + 1)
+        descrip = "%s's stats for %s:\n" % (name.title(), year_range)
+        header = '|'.join(['Season'] + [stat.upper() for stat in _stats])
+        line = '-|' * (len(_stats) + 1)
         table_data = [(pair[0],) + pair[1] for pair in zip(seasons, results)]
+        string_data = ['|'.join([str(element) for element in tup]) for tup in
+                       table_data]
+        text = '\n'.join([descrip, header, line] + string_data)
         self.log(self.output(text, comment))
 
     def run(self):
@@ -132,6 +137,11 @@ class StatBot:
         for comment in self.sub.stream.comments():
             if "!STAT" in comment.body:
                 self.process(comment)
+
+class _Comment():
+    '''Temporary class for testing purposes'''
+    def __init__(self, content):
+        self.body = content
 
 if __name__ == "__main__":
 
