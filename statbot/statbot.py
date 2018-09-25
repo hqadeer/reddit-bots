@@ -1,11 +1,23 @@
 import praw
 import sqlite3
+import time
 from nba_scrape import NBA
 
 class StatBot:
     '''Reddit bot to provide NBA stats upon request.
 
-    Usage TBD
+    Usage: !STAT player_name stat1/stat2/.../statn season_range [-flag]
+
+    Season Range:
+    Must be in the format YYYY-YY (i.e. 2017-18 or 2014-18). "Career" is also
+    accepted; this returns overall career stats.
+
+    Flags (optional parameter):
+    -p or -playoffs for playoff stats
+    -r or -season for regular season stats (default option)
+    -b or -both for both
+
+    Example: !STAT Lebron James pts/reb/ast/ts% 2014-18 -b
     '''
 
     def __init__(self, reddit_file):
@@ -22,7 +34,7 @@ class StatBot:
         self.reddit = praw.Reddit(client_id = info[0], client_secret = info[1],
                                   user_agent = info[2], username=info[3],
                                   password =info[4])
-        self.sub = self.reddit.subreddit('nba')
+        self.sub = self.reddit.subreddit('experimental120394')
         self.league = NBA()
         self.names = [name[0] for name in self.league.get_all_player_names()]
         self.stats = self.league.get_valid_stats()
@@ -72,8 +84,11 @@ class StatBot:
 
         # Find a word within the comment containing a stat.
         # Split that word along its forward slashes.
-        stat_word = [word for word in words if any([stat in word.upper() for
-                     stat in self.stats])][0].split('/')
+        try:
+            stat_word = [word for word in words if any([stat in word.upper() for
+                         stat in self.stats])][0].split('/')
+        except IndexError:
+            return
         return [stat for stat in stat_word if stat.upper() in self.stats]
 
     def parse_seasons(self, words):
@@ -84,6 +99,8 @@ class StatBot:
 
         def check(word):
             ''' Checks if a word specifies a year range'''
+            if word.lower() == 'career':
+                return True
             if '-' not in word or len(word) != 7:
                 return False
             try:
@@ -91,8 +108,10 @@ class StatBot:
                         or int(word[:2]) == 20))
             except ValueError:
                 return False
-
-        return [word for word in words if check(word)][0]
+        try:
+            return [word for word in words if check(word)][0]
+        except IndexError:
+            return
 
     def log(self, comment, response):
         '''Logs comment body, comment url, and response to database.'''
@@ -101,8 +120,8 @@ class StatBot:
         cursor = db.cursor()
         try:
             cursor.execute('''insert into logs (comment, url, response)
-                           values (?, ?, ?)''', (comment.body, comment.url,
-                           response))
+                           values (?, ?, ?)''', (comment.body,
+                           comment.permalink, response))
         finally:
             db.close()
         return response
@@ -114,9 +133,13 @@ class StatBot:
         '''
         words = comment.body.split(' ')
         name = self.parse_name(words)
-        player = self.league.get_player(name)
         stats = self.parse_stats(words)
         year_range = self.parse_seasons(words)
+        if name is None or stats is None:
+            return
+        if year_range == []:
+            year_range = None
+        player = self.league.get_player(name)
         if '-p' in words or '-playoffs' in words:
             p_results = player.get_stats(stats, year_range, mode='playoffs')
             r_results = []
@@ -127,9 +150,10 @@ class StatBot:
             r_results = player.get_stats(stats, year_range) # mode='season'
             p_results = []
         seasons = player.get_year_range(year_range)
-        descrip = "%s's stats for %s:\n" % (name.title(), year_range)
+        descrip = "%s's Stats for %s:\n" % (name.title(), year_range)
         header = '|'.join(['Season'] + [stat.upper() for stat in stats])
         line = '-|' * (len(stats) + 1)
+        footer = "\n\n^This ^comment ^was ^generated ^by ^a ^bot."
         if r_results:
             r_data = [(pair[0],) + pair[1] for pair in zip(seasons, r_results)]
             string_r = (['Regular Season:\n', header, line] +
@@ -144,23 +168,26 @@ class StatBot:
         else:
             string_p = []
         text = '\n'.join([descrip] + string_p[0:3] + string_p[3:] +
-                         string_r[0:3] + string_r[3:])
-        return self.log(comment, text)
+                         string_r[0:3] + string_r[3:] + [footer])
+        self.log(comment, text)
+        comment.reply(text)
 
     def run(self):
         '''Search for comments in r/nba containing "!STAT" and respond to them.
 
         This functions as the main loop of the program.
         '''
+        start_time = time.time()
         for comment in self.sub.stream.comments():
-            if "!STAT" in comment.body:
-                comment.reply(self.process(comment))
+            if "!STAT" in comment.body and comment.created_utc >= start_time:
+                self.process(comment)
 
 class _Comment():
-    '''Temporary class for testing purposes'''
+    '''Placeholder class for testing purposes'''
     def __init__(self, content):
         self.body = content
 
 if __name__ == "__main__":
 
-    bot = StatBot('reddit.txt')
+    bot = StatBot('reddit.txt') # File containing login and API credentials.
+    bot.run()
