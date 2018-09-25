@@ -1,7 +1,5 @@
-import sys
 import praw
 import sqlite3
-import copy
 from nba_scrape import NBA
 
 class StatBot:
@@ -28,6 +26,12 @@ class StatBot:
         self.league = NBA()
         self.names = [name[0] for name in self.league.get_all_player_names()]
         self.stats = self.league.get_valid_stats()
+        self.database = 'logs.db'
+        db = sqlite3.connect(self.database)
+        cursor = db.cursor()
+        cursor.execute('''create table if not exists logs(comment TEXT,
+                       url TEXT, response TEXT)''')
+        db.close()
 
 
     def load_relevant_players(self, limit=5):
@@ -90,16 +94,18 @@ class StatBot:
 
         return [word for word in words if check(word)][0]
 
-    def output(self, text, comment):
-        ''' Format results and post them as a reply to comment
-        Return ID and URL of response.
+    def log(self, comment, response):
+        '''Logs comment body, comment url, and response to database.'''
 
-        results (list of tuples) -- output returned from get_stats query
-        comment -- praw.Comment object
-        '''
-
-    def log(self, comment):
-        pass
+        db = sqlite3.connect(self.database)
+        cursor = db.cursor()
+        try:
+            cursor.execute('''insert into logs (comment, url, response)
+                           values (?, ?, ?)''', (comment.body, comment.url,
+                           response))
+        finally:
+            db.close()
+        return response
 
     def process(self, comment):
         '''Takes a comment and posts a reply providing the queried stat(s)
