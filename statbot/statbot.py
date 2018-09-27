@@ -34,7 +34,7 @@ class StatBot:
         self.reddit = praw.Reddit(client_id = info[0], client_secret = info[1],
                                   user_agent = info[2], username=info[3],
                                   password =info[4])
-        self.sub = self.reddit.subreddit('experimental120394')
+        self.sub = self.reddit.subreddit('nba')
         self.league = NBA()
         self.names = [name[0] for name in self.league.get_all_player_names()]
         self.stats = self.league.get_valid_stats()
@@ -62,6 +62,7 @@ class StatBot:
                     relevant.add(name)
             except IndexError:
                 continue
+        print('Loading %d players:' % len(relevant), relevant)
         self.league.load_players(relevant)
 
     def parse_name(self, words):
@@ -122,6 +123,7 @@ class StatBot:
             cursor.execute('''insert into logs (comment, url, response)
                            values (?, ?, ?)''', (comment.body,
                            comment.permalink, response))
+            db.commit()
         finally:
             db.close()
         return response
@@ -149,22 +151,24 @@ class StatBot:
         else:
             r_results = player.get_stats(stats, year_range) # mode='season'
             p_results = []
-        seasons = player.get_year_range(year_range)
-        descrip = "%s's Stats for %s:\n" % (name.title(), year_range)
+        if year_range is None:
+            year_range = 'All'
+        descrip = "Stats for %s (%s):\n\n" % (name.title(), year_range)
         header = '|'.join(['Season'] + [stat.upper() for stat in stats])
         line = '-|' * (len(stats) + 1)
-        footer = "\n\n^This ^comment ^was ^generated ^by ^a ^bot."
+        footer = "\n\n\n^This ^comment ^was ^generated ^by ^a ^bot."
         if r_results:
-            r_data = [(pair[0],) + pair[1] for pair in zip(seasons, r_results)]
-            string_r = (['Regular Season:\n', header, line] +
+            r_data = [(pair[0],) + pair[1] for pair in r_results.items()]
+            string_r = (['\n\n**Regular Season:**\n\n', header, line] +
                        ['|'.join([str(element) for element in tup]) for tup
                         in r_data])
         else:
             string_r = []
         if p_results:
-            p_data = [(pair[0],) + pair[1] for pair in zip(seasons, p_results)]
-            string_p = ['Playoffs:\n', header, line] + ['|'.join([str(element)
-                        for element in tup]) for tup in p_data]
+            p_data = [(pair[0],) + pair[1] for pair in p_results.items()]
+            string_p = (['\n\n**Playoffs:**\n\n', header, line] +
+                        ['|'.join([str(element) for element in tup]) for tup
+                        in p_data])
         else:
             string_p = []
         text = '\n'.join([descrip] + string_p[0:3] + string_p[3:] +
@@ -190,4 +194,3 @@ class _Comment():
 if __name__ == "__main__":
 
     bot = StatBot('reddit.txt') # File containing login and API credentials.
-    bot.run()
