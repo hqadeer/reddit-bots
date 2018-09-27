@@ -1,6 +1,7 @@
 import praw
 import sqlite3
 import time
+import traceback
 from nba_scrape import NBA
 
 class StatBot:
@@ -184,7 +185,11 @@ class StatBot:
         start_time = time.time()
         for comment in self.sub.stream.comments():
             if "!STAT" in comment.body and comment.created_utc >= start_time:
-                self.process(comment)
+                try:
+                    self.process(comment)
+                except Exception as exc:
+                    traceback.print_exc()
+                    continue
 
 class _Comment():
     '''Placeholder class for testing purposes'''
