@@ -172,8 +172,7 @@ class StatBot:
                         in p_data])
         else:
             string_p = []
-        text = '\n'.join([descrip] + string_p[0:3] + string_p[3:] +
-                         string_r[0:3] + string_r[3:] + [footer])
+        text = '\n'.join([descrip] + string_p + string_r + [footer])
         self.log(comment, text)
         comment.reply(text)
 
