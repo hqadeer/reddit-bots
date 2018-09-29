@@ -7,11 +7,12 @@ from nba_scrape import NBA
 class StatBot:
     '''Reddit bot to provide NBA stats upon request.
 
-    Usage: !STAT player_name stat1/stat2/.../statn season_range [-flag]
+    Usage: !STAT player_name stat1/stat2/.../statn [season_range] [-flag]
 
-    Season Range:
-    Must be in the format YYYY-YY (i.e. 2017-18 or 2014-18). "Career" is also
-    accepted; this returns overall career stats.
+    Season Range (optional parameter):
+    Returns all seasons (including career averages) by default.
+    Ranges must be in the format YYYY-YY (i.e. 2017-18 or 2014-18). "career" is
+    also accepted; this returns overall career stats.
 
     Flags (optional parameter):
     -p or -playoffs for playoff stats
@@ -102,7 +103,7 @@ class StatBot:
 
         def check(word):
             ''' Checks if a word specifies a year range'''
-            if word.lower() == 'career':
+            if 'career' in word.lower():
                 return True
             if '-' not in word or len(word) != 7:
                 return False
@@ -155,7 +156,7 @@ class StatBot:
             r_results = player.get_stats(stats, year_range) # mode='season'
             p_results = []
         if year_range is None:
-            year_range = 'All'
+            year_range = 'All Seasons'
         descrip = "Stats for %s (%s):\n" % (name.title(), year_range)
         header = '|'.join(['Season'] + [stat.upper() for stat in stats])
         line = '-|' * (len(stats) + 1)
