@@ -35,7 +35,7 @@ class StatBot:
         self.reddit = praw.Reddit(client_id = info[0], client_secret = info[1],
                                   user_agent = info[2], username=info[3],
                                   password =info[4])
-        self.sub = self.reddit.subreddit('nba')
+        self.sub = self.reddit.subreddit('experimental120394')
         self.league = NBA()
         self.names = [name[0] for name in self.league.get_all_player_names()]
         self.stats = self.league.get_valid_stats()
@@ -91,7 +91,8 @@ class StatBot:
                          stat in self.stats])][0].split('/')
         except IndexError:
             return
-        return [stat for stat in stat_word if stat.upper() in self.stats]
+        return [stat.upper() for stat in stat_word if stat.upper() in
+                self.stats]
 
     def parse_seasons(self, words):
         ''' Parse a comment's body for the season range requested and return it
@@ -134,19 +135,20 @@ class StatBot:
 
         comment (praw.Comment object) -- comment containing trigger
         '''
-        words = comment.body.split(' ')
+        words = comment.body.replace('\n', '').split(' ')
         name = self.parse_name(words)
         stats = self.parse_stats(words)
         year_range = self.parse_seasons(words)
-        if name is None or stats is None:
+        if name is None or not stats:
+            print("Aborting because either name or stat was not found.")
             return
         if year_range == []:
             year_range = None
         player = self.league.get_player(name)
-        if '-p' in words or '-playoffs' in words:
+        if '-p' in words or '-P' in words or '-playoffs' in words:
             p_results = player.get_stats(stats, year_range, mode='playoffs')
             r_results = []
-        elif '-b' in words or '-both' in words:
+        elif '-b' in words or '-B' in words or '-both' in words:
             p_results = player.get_stats(stats, year_range, mode='playoffs')
             r_results = player.get_stats(stats, year_range)
         else:
@@ -154,20 +156,20 @@ class StatBot:
             p_results = []
         if year_range is None:
             year_range = 'All'
-        descrip = "Stats for %s (%s):\n\n" % (name.title(), year_range)
+        descrip = "Stats for %s (%s):\n" % (name.title(), year_range)
         header = '|'.join(['Season'] + [stat.upper() for stat in stats])
         line = '-|' * (len(stats) + 1)
-        footer = "\n\n\n^This ^comment ^was ^generated ^by ^a ^bot."
+        footer = "\n^This ^comment ^was ^generated ^by ^a ^bot."
         if r_results:
             r_data = [(pair[0],) + pair[1] for pair in r_results.items()]
-            string_r = (['\n\n**Regular Season:**\n\n', header, line] +
+            string_r = (['\n**Regular Season:**\n', header, line] +
                        ['|'.join([str(element) for element in tup]) for tup
                         in r_data])
         else:
             string_r = []
         if p_results:
             p_data = [(pair[0],) + pair[1] for pair in p_results.items()]
-            string_p = (['\n\n**Playoffs:**\n\n', header, line] +
+            string_p = (['\n**Playoffs:**\n', header, line] +
                         ['|'.join([str(element) for element in tup]) for tup
                         in p_data])
         else:
@@ -184,16 +186,21 @@ class StatBot:
         start_time = time.time()
         for comment in self.sub.stream.comments():
             if "!STAT" in comment.body and comment.created_utc >= start_time:
+                print(comment.body)
                 try:
                     self.process(comment)
                 except Exception as exc:
                     traceback.print_exc()
-                    continue
+                continue
 
 class _Comment():
     '''Placeholder class for testing purposes'''
     def __init__(self, content):
         self.body = content
+        self.permalink = 'blank'
+        self.created_utc = 'blank'
+    def reply(self, x):
+        print('replying:', x)
 
 if __name__ == "__main__":
 
