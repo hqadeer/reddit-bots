@@ -175,9 +175,10 @@ class StatBot:
                         in p_data])
         else:
             string_p = []
-        text = '\n'.join([descrip] + string_p + string_r + [footer])
-        self.log(comment, text)
-        comment.reply(text)
+        table = '\n'.join(string_p + string_r + [footer])
+        print(table)
+        self.log(comment, descrip + table)
+        comment.author.message(descrip, table)
 
     def run(self):
         '''Search for comments in r/nba containing "!STAT" and respond to them.
@@ -190,7 +191,7 @@ class StatBot:
                 print(comment.body)
                 try:
                     self.process(comment)
-                except Exception as exc:
+                except Exception:
                     traceback.print_exc()
                 continue
 
@@ -200,8 +201,13 @@ class _Comment():
         self.body = content
         self.permalink = 'blank'
         self.created_utc = 'blank'
+        self.author = Author()
     def reply(self, x):
         print('replying:', x)
+
+class Author:
+        def message(self, y, z):
+            print ('blank')
 
 if __name__ == "__main__":
 
