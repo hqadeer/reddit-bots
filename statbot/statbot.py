@@ -4,6 +4,8 @@ import time
 import traceback
 from nba_scrape import NBA
 
+PREVIOUS_SEASON = '2017-18'
+
 class StatBot:
     '''Reddit bot to provide NBA stats upon request.
 
@@ -140,12 +142,13 @@ class StatBot:
         name = self.parse_name(words)
         stats = self.parse_stats(words)
         year_range = self.parse_seasons(words)
+        update = year_range > PREVIOUS_SEASON
         if name is None or not stats:
             print("Aborting because either name or stat was not found.")
             return
         if year_range == []:
             year_range = None
-        player = self.league.get_player(name)
+        player = self.league.get_player(name, update)
         if '-p' in words or '-P' in words or '-playoffs' in words:
             p_results = player.get_stats(stats, year_range, mode='playoffs')
             r_results = []
@@ -205,10 +208,12 @@ class _Comment():
     def reply(self, x):
         print('replying:', x)
 
-class Author:
+class _Author:
+    '''Placeholder class for testing purposes'''
         def message(self, y, z):
             print ('blank')
 
 if __name__ == "__main__":
 
     bot = StatBot('reddit.txt') # File containing login and API credentials.
+    bot.run()
