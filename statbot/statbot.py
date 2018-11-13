@@ -142,7 +142,8 @@ class StatBot:
         name = self.parse_name(words)
         stats = self.parse_stats(words)
         year_range = self.parse_seasons(words)
-        update = year_range > PREVIOUS_SEASON
+        update = (year_range[0] > PREVIOUS_SEASON[0] and year_range[5:] >
+                                                         PREVIOUS_SEASON[5:])
         if name is None or not stats:
             print("Aborting because either name or stat was not found.")
             return
@@ -210,7 +211,7 @@ class _Comment():
 
 class _Author:
     '''Placeholder class for testing purposes'''
-    
+
     def message(self, y, z):
         print ('blank')
 
