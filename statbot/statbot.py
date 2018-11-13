@@ -181,7 +181,7 @@ class StatBot:
             string_p = []
         table = '\n'.join([descrip] + string_p + string_r + [footer])
         print(table)
-        self.log(comment, table))
+        self.log(comment, table)
         comment.reply(table)
 
     def run(self):
