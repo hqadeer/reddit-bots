@@ -210,8 +210,9 @@ class _Comment():
 
 class _Author:
     '''Placeholder class for testing purposes'''
-        def message(self, y, z):
-            print ('blank')
+    
+    def message(self, y, z):
+        print ('blank')
 
 if __name__ == "__main__":
 
