@@ -179,10 +179,10 @@ class StatBot:
                         in p_data])
         else:
             string_p = []
-        table = '\n'.join(string_p + string_r + [footer])
+        table = '\n'.join([descrip] + string_p + string_r + [footer])
         print(table)
-        self.log(comment, descrip + table)
-        comment.author.message(descrip, table)
+        self.log(comment, table))
+        comment.reply(table)
 
     def run(self):
         '''Search for comments in r/nba containing "!STAT" and respond to them.
