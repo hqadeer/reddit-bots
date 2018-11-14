@@ -5,6 +5,7 @@ import traceback
 from nba_scrape import NBA
 
 PREVIOUS_SEASON = '2017-18'
+ACTIVE_SUB = 'nba'
 
 class StatBot:
     '''Reddit bot to provide NBA stats upon request.
@@ -38,7 +39,7 @@ class StatBot:
         self.reddit = praw.Reddit(client_id = info[0], client_secret = info[1],
                                   user_agent = info[2], username=info[3],
                                   password =info[4])
-        self.sub = self.reddit.subreddit('experimental120394')
+        self.sub = self.reddit.subreddit(ACTIVE_SUB)
         self.league = NBA()
         self.names = [name[0] for name in self.league.get_all_player_names()]
         self.stats = self.league.get_valid_stats()
@@ -142,8 +143,11 @@ class StatBot:
         name = self.parse_name(words)
         stats = self.parse_stats(words)
         year_range = self.parse_seasons(words)
-        update = (year_range[0] >= PREVIOUS_SEASON[0] and year_range[5:] >
-                                                          PREVIOUS_SEASON[5:])
+        if year_range is not None:
+            update = (year_range[0] >= PREVIOUS_SEASON[0] and
+                      year_range[5:] > PREVIOUS_SEASON[5:])
+        else:
+            update = True
         if name is None or not stats:
             print("Aborting because either name or stat was not found.")
             return
@@ -164,7 +168,7 @@ class StatBot:
         descrip = "Stats for %s (%s):\n" % (name.title(), year_range)
         header = '|'.join(['Season'] + [stat.upper() for stat in stats])
         line = '-|' * (len(stats) + 1)
-        footer = "\n^This ^comment ^was ^generated ^by ^a ^bot."
+        footer = "\n^Sourced ^from ^stats.nba.com."
         if r_results:
             r_data = [(pair[0],) + pair[1] for pair in r_results.items()]
             string_r = (['\n**Regular Season:**\n', header, line] +
