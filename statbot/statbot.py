@@ -5,7 +5,7 @@ import traceback
 from nba_scrape import NBA
 
 PREVIOUS_SEASON = '2017-18'
-ACTIVE_SUB = 'nba'
+ACTIVE_SUB = 'nba+experimental120394'
 
 class StatBot:
     '''Reddit bot to provide NBA stats upon request.
@@ -222,4 +222,9 @@ class _Author:
 if __name__ == "__main__":
 
     bot = StatBot('reddit.txt') # File containing login and API credentials.
-    bot.run()
+    while True:
+        try:
+            bot.run()
+        except Exception:
+            traceback.print_exc()
+            time.sleep(3)
