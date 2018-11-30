@@ -48,6 +48,7 @@ class StatBot:
         cursor = db.cursor()
         cursor.execute('''create table if not exists logs(comment TEXT,
                        url TEXT, response TEXT)''')
+        db.commit()
         db.close()
 
 
